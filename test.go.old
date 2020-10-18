@@ -1,0 +1,9 @@
+package main
+
+import (
+	xpm "xpm_internal"
+)
+
+func main() {
+	xpm.DownloadAndSave("http://raw.github.com/ocornut/imgui/v1.79/imconfig.h", ".", "lcs")
+}
