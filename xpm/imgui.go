@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"strconv"
 
 	"github.com/antchfx/xmlquery"
 )
@@ -27,6 +28,7 @@ func (x *XImgui) GetRemoteVersion(version string) (string, error) {
 		return "", err
 	}
 
+	subfolder := "backends"
 	doc, err := xmlquery.Parse(strings.NewReader(res))
 	if err != nil {
 		return "", err
@@ -49,7 +51,13 @@ func (x *XImgui) GetRemoteVersion(version string) (string, error) {
 			return "", fmt.Errorf("Cannot find version %s", version)
 		}
 		tag = strings.TrimSpace(node.Data)
+
+		ver, err := strconv.ParseFloat(version, 64)
+		if err == nil && ver < 1.80 {
+			subfolder = "examples"
+		}
 	}
+
 
 	x.url = fmt.Sprintf("https://raw.githubusercontent.com/ocornut/imgui/%s", tag)
 	x.filelist = []string{
@@ -64,10 +72,14 @@ func (x *XImgui) GetRemoteVersion(version string) (string, error) {
 		"imstb_textedit.h",
 		"imstb_truetype.h",
 	}
+	if len(x.config) == 0 {
+		fmt.Println("using default config glfw & opengl3")
+		x.config = append(x.config, "glfw", "opengl3")
+	}
 	for _, c := range x.config {
 		switch c {
-		case "glut":
-			fmt.Fprintf(os.Stderr, "Warning: glut is obsolete, try using glfw or sdl instead!\n")
+		case "vulkan":
+			x.filelist = append(x.filelist, "vulkan/generate_spv.sh", "vulkan/glsl_shader.frag", "glsl_shader.vert")
 			fallthrough
 		case "glfw":
 			fallthrough
@@ -82,10 +94,8 @@ func (x *XImgui) GetRemoteVersion(version string) (string, error) {
 		case "dx11":
 			fallthrough
 		case "dx12":
-			fallthrough
-		case "vulkan":
-			header := fmt.Sprintf("examples/imgui_impl_%s.h", c)
-			source := fmt.Sprintf("examples/imgui_impl_%s.cpp", c)
+			header := fmt.Sprintf("%s/imgui_impl_%s.h", subfolder, c)
+			source := fmt.Sprintf("%s/imgui_impl_%s.cpp", subfolder, c)
 			x.filelist = append(x.filelist, header, source)
 		default:
 			fmt.Fprintf(os.Stderr, "Warning: config %s is not recognized\n", c)

@@ -18,7 +18,7 @@ var (
 )
 
 func initGlobal() {
-	_Version = "0.0.1-alpha"
+	_Version = "0.0.1"
 }
 
 func initFlags() {
