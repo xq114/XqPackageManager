@@ -28,6 +28,7 @@ func (x *XImgui) GetRemoteVersion(version string) (string, error) {
 		return "", err
 	}
 
+	bigger_v180 := true
 	subfolder := "backends"
 	doc, err := xmlquery.Parse(strings.NewReader(res))
 	if err != nil {
@@ -55,12 +56,13 @@ func (x *XImgui) GetRemoteVersion(version string) (string, error) {
 		ver, err := strconv.ParseFloat(version, 64)
 		if err == nil && ver < 1.80 {
 			subfolder = "examples"
+			bigger_v180 = false
 		}
 	}
-
-
+	
+	
 	x.url = fmt.Sprintf("https://raw.githubusercontent.com/ocornut/imgui/%s", tag)
-	x.filelist = []string{
+	x.filelist = append(x.filelist,
 		"imconfig.h",
 		"imgui.h",
 		"imgui.cpp",
@@ -71,6 +73,9 @@ func (x *XImgui) GetRemoteVersion(version string) (string, error) {
 		"imstb_rectpack.h",
 		"imstb_textedit.h",
 		"imstb_truetype.h",
+	)
+	if bigger_v180 {
+		x.filelist = append(x.filelist, "imgui_tables.cpp")
 	}
 	if len(x.config) == 0 {
 		fmt.Println("using default config glfw & opengl3")
